@@ -15,7 +15,7 @@
 | Status | Initial Draft |
 | License | MIT |
 | Platform | Windows 10 / Windows 11 |
-| Tech Stack | .NET 8, C#, WPF (MVVM), SQLite, OpenAI API |
+| Tech Stack | .NET 10, C#, WPF (MVVM), SQLite, OpenAI API |
 | Project Type | Open Source |
 
 ---
@@ -300,7 +300,7 @@ Version 1 includes:
 | Component | Technology |
 |-----------|------------|
 | Language | C# |
-| Framework | .NET 8 |
+| Framework | .NET 10 |
 | UI | WPF |
 | Pattern | MVVM |
 | Database | SQLite |
