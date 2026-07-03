@@ -1,14 +1,8 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Windows;
+namespace FileLens.UI;
 
-namespace FileLens.UI
+/// <summary>
+/// Provides the WPF application entry point.
+/// </summary>
+public partial class App : System.Windows.Application
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
-    public partial class App : Application
-    {
-    }
-
 }

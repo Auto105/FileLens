@@ -2,11 +2,11 @@
 
 ## Project Setup
 
-- [ ] Create solution
-- [ ] Configure MVVM
-- [ ] Configure DI
-- [ ] Configure SQLite
-- [ ] Configure Logging
+- [x] Create solution
+- [x] Configure MVVM
+- [x] Configure DI
+- [x] Configure SQLite
+- [x] Configure Logging
 
 ---
 
