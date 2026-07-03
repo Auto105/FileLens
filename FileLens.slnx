@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="src/FileLens.Application/FileLens.Application.csproj" />
+  <Project Path="src/FileLens.Domain/FileLens.Domain.csproj" />
+  <Project Path="src/FileLens.Infrastructure/FileLens.Infrastructure.csproj" />
+  <Project Path="src/FileLens.Shared/FileLens.Shared.csproj" />
+  <Project Path="src/FileLens.UI/FileLens.UI.csproj" />
+</Solution>
