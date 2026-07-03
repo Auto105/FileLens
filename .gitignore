@@ -1,0 +1,46 @@
+# Visual Studio
+.vs/
+bin/
+obj/
+
+# Rider
+.idea/
+
+# VSCode
+.vscode/
+
+# Logs
+*.log
+
+# SQLite
+*.db
+*.db-shm
+*.db-wal
+
+# User Settings
+*.user
+*.suo
+
+# ReSharper
+_ReSharper*/
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Temporary
+temp/
+tmp/
+
+# NuGet
+packages/
+
+# Publish
+publish/
+
+# Test Results
+TestResults/
+
+# Local development
+Codex.bat
+.env
