@@ -76,7 +76,7 @@ Avoid shortcuts.
 
 # Architecture
 
-FileLens follows a modified Clean Architecture.
+FileLens follows a strict Clean Architecture.
 
 ```
 
@@ -139,9 +139,9 @@ The solution follows a strict one-way dependency rule.
 
 | Project | References |
 |----------|------------|
-| FileLens.UI | FileLens.Application |
-| FileLens.Application | FileLens.Domain |
-| FileLens.Infrastructure | FileLens.Application, FileLens.Domain |
+| FileLens.UI | FileLens.Application, FileLens.Shared |
+| FileLens.Application | FileLens.Domain, FileLens.Shared |
+| FileLens.Infrastructure | FileLens.Application, FileLens.Domain, FileLens.Shared |
 | FileLens.Domain | None |
 | FileLens.Shared | None |
 
@@ -231,7 +231,6 @@ Contains
 - Constants
 - Common models
 - Extensions
-- Shared utilities
 
 Avoid placing business logic here.
 
@@ -239,12 +238,13 @@ Avoid placing business logic here.
 
 # Dependency Rules
 
-| From           | Can Reference       |
-| -------------- | ------------------- |
-| UI             | Application         |
-| Application    | Domain              |
-| Infrastructure | Domain, Application |
-| Domain         | Nothing             |
+| From | Can Reference |
+|------|---------------|
+| UI | Application, Shared |
+| Application | Domain, Shared |
+| Infrastructure | Application, Domain, Shared |
+| Domain | Nothing |
+| Shared | Nothing |
 
 
 Forbidden
@@ -260,6 +260,45 @@ Domain → Infrastructure
 Domain → SQLite
 
 Domain → WPF
+
+---
+
+## AI Provider Architecture
+
+FileLens must remain independent of any specific AI provider.
+
+All AI capabilities shall be accessed through an abstraction layer (`IAIProvider`), ensuring that business logic never depends on a vendor-specific SDK or API.
+
+```text
+                 Application
+                       │
+                       ▼
+                IAIProvider
+                       │
+      ┌────────────────┼────────────────┐
+      │                │                │
+      ▼                ▼                ▼
+ OpenAI Provider  NVIDIA Provider  Gemini Provider
+                       │
+                       ▼
+               Ollama Provider
+```
+
+### Design Principles
+
+- Business logic must not depend on any AI vendor.
+- AI providers must be replaceable without modifying the Application or Domain layers.
+- Each provider must implement the same abstraction (`IAIProvider`).
+- Provider-specific SDKs and APIs belong only in the Infrastructure layer.
+- Adding a new AI provider must not require changes to existing business logic.
+
+### Initial Scope
+
+Sprint 0, Sprint 1, and Sprint 2 **do not** implement any AI provider.
+
+Only the architectural direction and abstraction are defined at this stage.
+
+Concrete provider implementations (such as OpenAI, NVIDIA NIM, Ollama, Anthropic, or Google Gemini) are planned for a future sprint after the file analysis pipeline is complete.
 
 ---
 
@@ -578,7 +617,11 @@ Hidden side effects.
 
 Language Version
 
-Latest stable
+C# 14.0
+
+Analysis Level
+
+10.0
 
 Nullable Reference Types
 
@@ -1030,29 +1073,6 @@ A feature is complete when
 
 ---
 
-# Sprint 0
-
-Goal
-
-Create the project foundation.
-
-Tasks
-
-- Create solution
-- Create all projects
-- Configure MVVM
-- Configure Dependency Injection
-- Configure Serilog
-- Configure SQLite
-- Configure Settings
-- Configure project references
-- Create base folder structure
-- First successful build
-
-No application features should be implemented during Sprint 0.
-
----
-
 # AI Coding Rules
 
 When generating code:
@@ -1134,31 +1154,30 @@ The following sections will be expanded during development.
 
 # Current Sprint
 
-## Sprint 0 – Project Foundation
+Sprint 2
 
-Status
+## Sprint 2 – Composition Root and Scan Use Case
 
-Planning
+**Status**
 
-Objective
+Planned
 
-Establish the project architecture and development environment.
+**Prerequisite**
 
-Deliverables
+Sprint 1 completed the folder scanning pipeline, including folder traversal, file enumeration, file metadata extraction, and scan summary calculation.
 
-- Solution created
-- Projects created
-- MVVM configured
-- Dependency Injection configured
-- Logging configured
-- SQLite configured
-- First successful build
+**Planned Deliverables**
 
-Definition of Done
+- Dedicated Bootstrap/Host composition root
+- Runtime DI registration for the scanning pipeline
+- Scan use case
+- Basic scan validation
 
-- Application builds successfully.
-- Solution structure matches this specification.
-- No application features implemented yet.
+**Constraint**
+
+Strict Clean Architecture remains in effect.
+
+The UI project must not reference Infrastructure directly, so runtime composition must occur in a dedicated Bootstrap/Host project.
 
 ---
 

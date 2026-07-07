@@ -398,3 +398,11 @@ Sprint 0 – Project Initialization
 The primary goal of FileLens is not to automate file management.
 
 Its purpose is to help users understand their files and make informed decisions through explainable AI recommendations while keeping users in complete control.
+
+---
+
+### AI Provider Abstraction
+
+The AI subsystem must be provider-agnostic.
+
+All AI integrations shall be accessed through an abstraction layer (IAIProvider), allowing support for multiple providers such as OpenAI, NVIDIA NIM, Anthropic, Google Gemini, Ollama, and future providers without affecting business logic.

@@ -5,9 +5,9 @@
 ![Platform](https://img.shields.io/badge/Platform-Windows-blue)
 ![.NET](https://img.shields.io/badge/.NET-10-purple)
 ![License](https://img.shields.io/badge/License-MIT-green)
-![Status](https://img.shields.io/badge/Status-Sprint%200-success)
+![Status](https://img.shields.io/badge/Status-Sprint%201%20complete-success)
 
-FileLens is an open-source Windows desktop application that helps users understand, organize, and manage their files with transparent AI recommendations.
+FileLens is an open-source Windows desktop application that helps users understand, organize, and manage their files through transparent AI recommendations.
 
 Unlike traditional "one-click cleaners," FileLens never performs actions automatically.
 
@@ -19,9 +19,9 @@ Unlike traditional "one-click cleaners," FileLens never performs actions automat
 
 FileLens is built on three core principles.
 
-- 🤖 **AI recommends**
-- 👤 **Users decide**
-- 🔒 **Nothing happens automatically**
+- **AI recommends**
+- **Users decide**
+- **Nothing happens automatically**
 
 Every recommendation is explainable.
 
@@ -33,14 +33,14 @@ Users always remain in control.
 
 # Features (Planned)
 
-- 📁 Intelligent folder analysis
-- 📊 Storage visualization
-- 🔍 Duplicate file detection
-- 🤖 Explainable AI recommendations
-- 💬 Natural language file assistant
-- 📜 Undo & operation history
-- 🔐 Privacy-first architecture
-- ⚡ Native Windows desktop experience
+- Intelligent folder analysis
+- Storage visualization
+- Duplicate file detection
+- Explainable AI recommendations
+- Natural language file assistant
+- Undo and operation history
+- Privacy-first architecture
+- Native Windows desktop experience
 
 ---
 
@@ -59,14 +59,15 @@ Users always remain in control.
 
 ---
 
-# Project Status
+## Project Status
 
 Current Progress
 
-- ✅ Documentation completed
-- ✅ Project architecture established
-- ✅ Sprint 0 completed
-- ⏳ Sprint 1 upcoming
+- Documentation completed
+- Project architecture established
+- Sprint 0 completed
+- Sprint 1 completed
+- Sprint 2 planned
 
 ---
 
@@ -86,6 +87,9 @@ docs/
     AI_DESIGN
     ARCHITECTURE
     UI_UX
+    Sprint/
+        Sprint-00.md
+        Sprint-01.md
 
 tests/
 ```
@@ -117,18 +121,21 @@ This project emphasizes:
 
 ## Sprint 1
 
-- Folder Scanner
-- File Metadata
-- Storage Analysis
+- Folder scanner
+- File metadata
+- Scan summary calculation
 
 ## Sprint 2
 
-- Duplicate Detection
-- Large File Detection
+- Bootstrap/Host composition root
+- Runtime Dependency Injection registration
+- Scan use case
 
 ## Sprint 3
 
-- AI Recommendation Engine
+- Duplicate detection
+- Large file detection
+- AI recommendation engine
 
 ---
 
