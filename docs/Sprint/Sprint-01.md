@@ -153,3 +153,29 @@ Build Errors
 Outstanding Warnings
 
 1 (SQLite advisory)
+
+---
+
+## Post-Audit Follow-Up — 2026-10-01
+
+This section records the approved post-audit planning dispositions. The original Sprint 1 goal, scope, checkboxes, task history, completion claims, dates, retrospective, and metrics above are preserved as the historical record. No incomplete task is retroactively marked complete.
+
+Sprint 1 delivered the scanner contract, tree / file DTOs, traversal, metadata extraction, and in-memory totals. Runtime integration, reliability validation, and the user-facing scanning workflow remained unfinished; the historical completion criteria must not be read as evidence of those capabilities or of validated 50,000+ file support.
+
+| Original Incomplete Item | Follow-Up Status | Explanation |
+|--------------------------|------------------|-------------|
+| Define `FileEntity` | Not required for Sprint 1 foundation | Application `FileNode` represents scan data; revisit Domain entities when product rules require them. |
+| Define `FolderEntity` | Not required for Sprint 1 foundation | Application `FolderNode` represents the scan tree; no duplicate Domain model is required for this foundation. |
+| Define `ScanSummary` | Not required for Sprint 1 foundation | Application `ScanResult` and the scanner's private calculation already represent totals; a separate Domain type was not created. |
+| Create scan use case | Moved to Sprint 2 | Implement and validate the Application execution path after policy / reliability work and runtime composition. |
+| Implement metadata reader | Superseded | Metadata extraction exists inside `WindowsFolderScanner`; a separate reader service was not created and is not currently required. |
+| Handle file access exceptions | Moved to Sprint 2 | Existing catches provide limited handling; enumeration failures, root behavior, partial results, and diagnostics still require policy definition and reliability work. |
+| Folder picker | Deferred to Sprint 3 | Part of the user-facing scan workflow. |
+| Scan button | Deferred to Sprint 3 | Deliver with Scan / Cancel interaction. |
+| Progress indicator | Deferred to Sprint 3 | Deliver with Progress / Status behavior. |
+| Result placeholder | Deferred to Sprint 3 | Deliver the initial result summary with the scan workflow. |
+| Basic scanning validation | Moved to Sprint 2 | Add isolated scanner IntegrationTests and validate the Application path. |
+
+The reordered Sprint 2 plan is in `../../SPRINT.md`. Scanner policy details remain pending separate review and approval; this follow-up does not finalize them. Future sprint numbers are provisional.
+
+The historical SQLite advisory remains unresolved in this documentation task. It is tracked separately as MAINT-001 in `../../TASKS.md`, without package changes or warning suppression.

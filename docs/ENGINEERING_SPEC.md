@@ -1,4 +1,4 @@
-> This document is the primary engineering reference for both human developers and AI coding assistants. When implementation details conflict with other documents, this specification takes precedence over all engineering decisions except the Product Requirements Document (PRD).
+> This document is the primary engineering reference for both human developers and AI coding assistants. Follow the documentation priority defined in `AGENTS.md`: `DECISIONS.md` > `ENGINEERING_SPEC.md` > `PRD.md` > `SPRINT.md` > `README.md`. Accepted architectural decisions take precedence over this specification. Supporting architecture, AI design, roadmap, and backlog documents must remain consistent with these references.
 
 # Engineering Specification
 
@@ -15,7 +15,7 @@
 | Project | FileLens |
 | Version | 0.1.0 |
 | Status | Active |
-| Last Updated | 2026-07-03 |
+| Last Updated | 2026-10-01 |
 
 ---
 
@@ -113,6 +113,8 @@ The Domain must never depend on Infrastructure.
 
 src/
 
+FileLens.Bootstrap
+
 FileLens.UI
 
 FileLens.Application
@@ -125,11 +127,15 @@ FileLens.Shared
 
 tests/
 
+FileLens.BootstrapTests
+
 FileLens.UnitTests
 
 FileLens.IntegrationTests
 
 ```
+
+The six `src/` projects, `FileLens.IntegrationTests`, and `FileLens.BootstrapTests` exist. `FileLens.UnitTests` remains a `.gitkeep` placeholder. Bootstrap is the executable composition root; UI is a WPF library. See `ARCHITECTURE.md` for production references and runtime ownership. Scanner IntegrationTests reference Application and Infrastructure without WPF; BootstrapTests reference Bootstrap for production composition checks.
 
 ---
 
@@ -139,6 +145,7 @@ The solution follows a strict one-way dependency rule.
 
 | Project | References |
 |----------|------------|
+| FileLens.Bootstrap | FileLens.UI, FileLens.Application, FileLens.Infrastructure |
 | FileLens.UI | FileLens.Application, FileLens.Shared |
 | FileLens.Application | FileLens.Domain, FileLens.Shared |
 | FileLens.Infrastructure | FileLens.Application, FileLens.Domain, FileLens.Shared |
@@ -155,6 +162,13 @@ Rules
 ---
 
 # Project Responsibilities
+
+## FileLens.Bootstrap
+
+Owns executable startup, Generic Host composition, and WPF / Host lifecycle coordination.
+It references UI and Infrastructure only as the top-level composition root, with no direct
+Domain or Shared reference. It contains no use case, scan business logic, filesystem operations,
+persistence, UI state workflow, or feature background service. UI retains its existing references.
 
 ## FileLens.UI
 
@@ -270,19 +284,16 @@ FileLens must remain independent of any specific AI provider.
 All AI capabilities shall be accessed through an abstraction layer (`IAIProvider`), ensuring that business logic never depends on a vendor-specific SDK or API.
 
 ```text
-                 Application
-                       │
-                       ▼
-                IAIProvider
-                       │
-      ┌────────────────┼────────────────┐
-      │                │                │
-      ▼                ▼                ▼
- OpenAI Provider  NVIDIA Provider  Gemini Provider
-                       │
-                       ▼
-               Ollama Provider
+ Application recommendation use case
+                  |
+                  v
+       IAIProvider (planned contract)
+                  |
+                  v
+   Selected Infrastructure provider
 ```
+
+This is a planned runtime call flow, not a project dependency diagram. Provider implementations will implement the Application contract; no provider depends on another provider.
 
 ### Design Principles
 
@@ -296,9 +307,9 @@ All AI capabilities shall be accessed through an abstraction layer (`IAIProvider
 
 Sprint 0, Sprint 1, and Sprint 2 **do not** implement any AI provider.
 
-Only the architectural direction and abstraction are defined at this stage.
+Only the architectural direction is documented at this stage. Neither the `IAIProvider` interface nor a concrete provider exists in the current source tree.
 
-Concrete provider implementations (such as OpenAI, NVIDIA NIM, Ollama, Anthropic, or Google Gemini) are planned for a future sprint after the file analysis pipeline is complete.
+Provisional Sprint 6 targets the first AI recommendation feature, a minimal `IAIProvider`, and one provider implementation after usable local analysis and large-scale validation. Provider selection and the exact contract require separate planning and approval. Additional providers, such as OpenAI, NVIDIA NIM, Ollama, Anthropic, or Google Gemini, remain future extensions under ADR-0008; they are not all required for the first implementation.
 
 ---
 
@@ -366,6 +377,10 @@ Choose the shortest valid lifetime.
 
 Avoid Singleton unless state sharing is required.
 
+The desktop App is singleton because WPF requires one Application per process. MainWindow and
+MainWindowViewModel are transient and constructed together on STA through DI. Infrastructure
+registers transient IFolderScanner / WindowsFolderScanner. No scoped desktop lifetime is introduced.
+
 ---
 
 # Approved NuGet Packages
@@ -380,6 +395,9 @@ Current approved packages
 - Serilog.Extensions.Hosting
 - Serilog.Sinks.File
 - Microsoft.Data.Sqlite
+- Microsoft.NET.Test.Sdk 18.10.1 (IntegrationTests and BootstrapTests)
+- MSTest.TestFramework 4.4.1 (IntegrationTests and BootstrapTests)
+- MSTest.TestAdapter 4.4.1 (IntegrationTests and BootstrapTests)
 
 Rules
 
@@ -947,7 +965,35 @@ ViewModel
 
 UI
 
+This diagram describes planned analysis stages, not the current implementation or mandatory feature delivery order. Basic large-file sorting / filtering targets Sprint 3, duplicate detection Sprint 4, visualization / large-scale validation Sprint 5, and the first AI recommendation Sprint 6. `ROADMAP.md` owns the provisional milestone mapping.
+
 Scanning should remain responsive throughout the pipeline.
+
+## Current Scanner State and Sprint 2 Planning
+
+Sprint 1 implemented `IFolderScanner`, the `FileNode` / `FolderNode` / `ScanResult` DTOs, and `WindowsFolderScanner` traversal, metadata extraction, and in-memory summary calculation. The scanner currently builds the complete tree on a `Task.Run` worker and then calculates totals. These are implementation foundations, not evidence that reliability or the 50,000+ file target has been validated.
+
+Sprint 2 reliability implementation now adds root validation, invocation-time path normalization, recoverable-error handling during actual enumeration and metadata reads, policy exclusions, completion status, and bounded diagnostic details. Minimal scanner IntegrationTests and Bootstrap runtime DI composition exist; the public Application use case remains unimplemented. Build success alone does not validate scanner reliability; environment-dependent gaps are recorded in the IntegrationTests README.
+
+Scanner policies, reliability implementation, the initial IntegrationTests scope, and Bootstrap / Host implementation were separately approved on 2026-10-01. The approved scanner behavior is recorded below; the Application Use Case and UnitTests still require their own plans and approvals.
+
+Retain `IFolderScanner` / `WindowsFolderScanner` and the existing `Task.Run` approach while addressing approved reliability work. The streaming / memory performance goals above remain goals, not current guarantees. Provisional Sprint 5 will measure large-scale behavior and justify any performance, virtualization, or streaming changes.
+
+### Approved Sprint 2 Scanner Policy
+
+- Null, empty, or whitespace-only input is rejected. A file is not a valid scan root. Root absence, access failure, I/O failure, or detected disappearance faults the task without returning a result.
+- Ordinary relative paths use the base directory captured when `ScanAsync` is invoked. Infrastructure normalizes DTO paths to absolute paths, preserving path casing and drive roots. Ambiguous drive-relative / root-relative inputs and explicit device paths are unsupported.
+- UNC paths and mapped network drives are outside the Sprint 2 MVP scope. Mapped drives are identified using actual `DriveInfo.DriveType`, not a drive-letter pattern. Unsupported roots throw `NotSupportedException`; diagnostic contracts use the general `UnsupportedPath` category instead of format-specific categories.
+- Root and ancestor directories are validated before traversal and again before returning the result. This detects observed loss or unsupported changes but does not provide an atomic snapshot or eliminate filesystem races.
+- Recoverable descendant access / not-found / I/O failures are recorded and traversal continues where possible. A folder that fails before yielding entries is omitted; a folder whose enumeration fails after yielding entries retains collected data. Failed mandatory file metadata causes that file to be omitted, not represented with zero size.
+- Cancellation propagates as `OperationCanceledException` without a partial result. Checks surround traversal, metadata work, summary loops, and final return. Synchronous OS calls are not forcibly interruptible; the PRD cancellation target needs measured validation.
+- All file and directory reparse points are intentionally excluded in the MVP, including symbolic links and junctions. Roots with excluded ancestors are unsupported. This is an explicit support limitation: OneDrive and other cloud-backed entries, even locally downloaded ones, may be excluded. Entries flagged for remote recall on data access are also excluded as `UnsupportedPath`. Metadata-only scanning does not guarantee the absence of provider-triggered network activity.
+- Protected exclusions cover the actual Windows installation directory and its descendants, plus the scanned volume's `System Volume Information` and `$Recycle.Bin` trees. Whole ancestor paths are compared; `Windows.old` is not a child of `Windows`. Program Files / ProgramData and Hidden / System attributes alone do not cause blanket exclusion. Ordinary access denial remains a failure, and no automatic elevation is attempted.
+- `ScanResult` retains tree and summary, adding `CompletionStatus`, `FailureCount`, `ExcludedEntryCount`, and `Diagnostics`. Status is `Partial` when observed recoverable failures exist, otherwise `Complete`, even with policy exclusions. Complete means completion within supported scope, not inclusion of every physical entry.
+- `TotalFolderCount` includes the returned root. Only retained nodes contribute to summary. `TotalSize` is retained files' logical length sum, not allocated or reclaimable space. Hard links are counted by path; count / size overflow is not silently accepted.
+- Failure counts represent observed events; excluded-entry counts represent observed entries, not their unknown descendants. Each event contributes one diagnostic before retention limits. Details contain absolute path, failure / exclusion kind, category, optional exception type, and HRESULT; no raw exception object, message, or stack trace is retained. User-facing messages should be derived from categories, and sensitive paths must not be logged or uploaded implicitly.
+- Diagnostic retention uses an Infrastructure-internal MVP default of 1,000 details per scan. This is adjustable after large-scale measurement, not a public or permanent product limit. Full failure / exclusion counters continue after detail retention stops. Truncation is detectable when detail count is less than the sum of the two counters. Scan state is isolated per invocation.
+- History identifiers / timestamps, streaming, progress reporting, and a new public filesystem abstraction are not added by this reliability task. Deep recursion, large-scale memory use, permission-dependent behavior, network-drive detection, and cloud behavior remain validation items.
 
 ---
 
@@ -960,6 +1006,10 @@ Repositories own persistence.
 Prepare for future migrations.
 
 Database should remain replaceable.
+
+SQLite remains the selected technology. Current code provides package / configuration scaffolding only; actual history / persistence targets provisional Sprint 7. Operation history and persistent undo / recovery must be ready before exposing the safe file operations planned for Sprint 8. No persistence feature is added in Sprint 2.
+
+The existing SQLite dependency warning is tracked separately as MAINT-001 in `../TASKS.md`. A minimal .NET 10 package update, fresh restore, warning resolution, full build, and any necessary SQLite smoke validation require separate maintenance approval. Warning suppression is not a resolution, and no package update is part of the documentation alignment.
 
 ---
 
@@ -998,31 +1048,11 @@ must require minimal changes.
 
 The application communicates only through IAIProvider.
 
-Current implementation
+Current status: design only. No `IAIProvider` interface or provider implementation exists yet.
 
-IAIProvider
+First implementation target: provisional Sprint 6, with a minimal Application contract and one Infrastructure provider selected during feature planning.
 
-↓
-
-OpenAIProvider
-
-Future implementations
-
-↓
-
-OllamaProvider
-
-↓
-
-ClaudeProvider
-
-↓
-
-GeminiProvider
-
-↓
-
-AzureOpenAIProvider
+Future provider examples include OpenAI, NVIDIA NIM, Ollama, Anthropic, Gemini, and Azure OpenAI. These are alternative implementations of the same abstraction, not an implementation chain or a commitment to deliver them all in the first AI sprint.
 
 The remainder of the application must never know which provider is active.
 
@@ -1031,6 +1061,12 @@ Providers should be replaceable through Dependency Injection.
 ---
 
 # Configuration
+
+Current Bootstrap composes the existing options callbacks; it does not implement the future
+SettingsService. Host content root is the executable directory. `FileLens:Logging:LogDirectory`
+can override the existing logging directory through Host configuration. Relative values are
+resolved under the user's local FileLens application-data directory; absolute values are retained.
+SQLite options remain scaffolding and no database is created by Bootstrap.
 
 Configuration belongs in
 
@@ -1116,14 +1152,41 @@ Before completing any feature, verify:
 
 # Testing Strategy
 
+Bootstrap runtime validation is separate from scanner fixtures. `FileLens.BootstrapTests` uses
+the existing central MSTest versions, validated production Host construction, transient scanner
+and ViewModel resolution, Host Start / Stop, log flush / file-handle release, static logger
+preservation, and relative / absolute logging options. One isolated STA check constructs shell
+windows and verifies compiled XAML / DataContext, without creating Application or showing windows.
+No Application.Run lifecycle or UI automation is added to the test runner.
+
+Validation on 2026-10-01: BootstrapTests discovered 7 tests, with 7 passed, 0 failed, 0 skipped.
+Scanner regression discovery found 26 tests: 23 passed, 0 failed, 3 skipped from the existing
+symbolic-link privilege and absent mapped-drive conditions. The full solution build succeeded
+with 0 errors and 8 occurrences of the existing NU1903 warning: restore and build each report
+Infrastructure, IntegrationTests, Bootstrap, and BootstrapTests. This is the existing MAINT-001
+dependency warning propagated to the two new consumers, not a new package or suppressed warning.
+
+Actual executable desktop smoke validation used process-assisted launching / normal window
+close and captured windows for visual inspection. From both the repository root and an ignored
+temporary directory, exactly one FileLens window appeared, no startup error was shown, normal
+close returned exit code 0, and no launched process remained. Both runs used
+`%LOCALAPPDATA%/FileLens/logs`, with Host startup / shutdown entries. This is separate desktop
+verification, not test-runner UI automation or a claim of comprehensive human interaction testing.
+
 Unit Tests
 
+- Scan Use Case and Application input validation
+- Cancellation forwarding, result propagation, and Application behavior
 - Domain
 - Recommendation Engine
 - Duplicate Detection
 
 Integration Tests
 
+- Scanner behavior, file metadata, summaries, and failure diagnostics
+- Approved link / reparse point, path normalization, and protected / inaccessible directory policies
+- Cancellation under documented test conditions
+- Dependency Injection integration where appropriate
 - SQLite
 - File Operations
 - AI Providers
@@ -1133,6 +1196,16 @@ UI Tests
 Planned after Version 1.0.
 
 Business logic should be testable without requiring UI components.
+
+Sprint 2 introduced `FileLens.IntegrationTests` targeting `net10.0-windows`, referencing Application and Infrastructure, with the three approved test packages pinned through Central Package Management. `FileLens.UnitTests` remains a placeholder for the separately approved future Application task. No mocking, coverage, or helper framework is directly added. Test-only XML documentation generation is disabled; production documentation rules are unchanged.
+
+IntegrationTests use public scanner results / exceptions. A separately approved minimal internal per-instance entry-observed checkpoint synchronizes deletion and running cancellation. The public parameterless constructor leaves it unset; production DI and `IFolderScanner` are unchanged. `Properties/AssemblyInfo.cs` adds only `InternalsVisibleTo("FileLens.IntegrationTests")`; it does not duplicate SDK-generated assembly attributes or disable generation.
+
+Fixtures own GUID containers under the repository's already-ignored `temp/` directory, validate ownership and path boundaries, and remove reparse entries without following their targets. Cleanup failures are reported. Tests do not change the process current directory, user/system ACLs, network mappings, or cloud settings. Environment capability failures use explicit inconclusive reasons. See `../tests/FileLens.IntegrationTests/README.md` for commands and remaining coverage.
+
+Validation on 2026-10-01: restore and solution build succeeded (0 errors, 4 occurrences of the existing NU1903 warning across Infrastructure and its test consumer). Discovery found 26 tests; 23 passed, 0 failed, and 3 were skipped from inconclusive outcomes (file / directory symbolic-link privileges unavailable, no mapped network drive). Junction exclusion, cycle / outside-root behavior and safe cleanup, both 1,000-detail counter regressions, and deterministic deletion / cancellation passed. ACL denial, OS-generated enumeration errors, cloud entries, and the real Windows / Windows.old boundary remain unverified. These results do not establish complete scanner reliability or performance.
+
+Filesystem fixtures must use isolated test-owned temporary roots with cleanup restricted to those roots. Permission-dependent tests must document environment requirements or explicit skip conditions. `samples/FolderTree` is absent from the current repository and must not be described as existing validation coverage. Large-scale performance verification targets provisional Sprint 5.
 
 ---
 
@@ -1160,24 +1233,29 @@ Sprint 2
 
 **Status**
 
-Planned
+In Progress
 
 **Prerequisite**
 
-Sprint 1 completed the folder scanning pipeline, including folder traversal, file enumeration, file metadata extraction, and scan summary calculation.
+Sprint 1 completed the scanning foundation: folder traversal, file enumeration, file metadata extraction, and in-memory scan summary calculation. Sprint 2 scanner policies, reliability code, and Bootstrap runtime composition are implemented; scanner IntegrationTests and BootstrapTests have run. The Application use case remains pending; environment-dependent scanner gaps require further verification.
 
 **Planned Deliverables**
 
-- Dedicated Bootstrap/Host composition root
-- Runtime DI registration for the scanning pipeline
-- Scan use case
-- Basic scan validation
+1. Scanner behavior / policy definition and separate approval
+2. Scanner reliability improvements according to the approved policies
+3. Minimal IntegrationTests and filesystem fixtures
+4. Dedicated Bootstrap/Host composition root and runtime DI registration
+5. Scan Use Case and input validation
+6. UnitTests for the Application path
+7. Full sprint integration verification
 
 **Constraint**
 
 Strict Clean Architecture remains in effect.
 
 The UI project must not reference Infrastructure directly, so runtime composition must occur in a dedicated Bootstrap/Host project.
+
+The Sprint Goal remains Composition Root and Scan Use Case. Duplicate detection, AI contract / provider implementation, file modifications, actual SQLite persistence, user-facing scan screens, and a full streaming replacement are outside Sprint 2. MAINT-001 requires separate maintenance approval and is not a Sprint 2 feature. `SPRINT.md` defines the detailed task board and completion criteria; the scanner policy above was finalized through separate approval after the documentation alignment.
 
 ---
 
@@ -1201,15 +1279,17 @@ Examples
 
 0.1.0
 
-Initial engineering specification.
+Project foundation, folder scanning, and basic scan integration / interaction.
 
 0.2.0
 
-Folder Scanner.
+Duplicate Detection and large-file analysis.
 
 0.3.0
 
-Duplicate Detection.
+Storage visualization and large-scale validation.
+
+These examples follow the planned version milestones in `../ROADMAP.md`; they do not declare a released version or implemented capability.
 
 ---
 

@@ -44,3 +44,4 @@ TestResults/
 # Local development
 Codex.bat
 .env
+.codex/

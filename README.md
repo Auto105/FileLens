@@ -37,7 +37,7 @@ Users always remain in control.
 - Storage visualization
 - Duplicate file detection
 - Explainable AI recommendations
-- Natural language file assistant
+- Natural language file assistant (Version 3.0 roadmap; outside Version 1)
 - Undo and operation history
 - Privacy-first architecture
 - Native Windows desktop experience
@@ -63,11 +63,15 @@ Users always remain in control.
 
 Current Progress
 
-- Documentation completed
+- Core documentation established
 - Project architecture established
 - Sprint 0 completed
-- Sprint 1 completed
-- Sprint 2 planned
+- Sprint 1 scanning foundation completed
+- Sprint 2 in progress: scanner policies and reliability implementation completed; Bootstrap/Host, runtime DI, and WPF startup / shutdown connected
+- BootstrapTests implemented: 7 passed, 0 failed, 0 skipped
+- IntegrationTests implemented and run: 23 passed, 0 failed, 3 environment-dependent skips; scanner verification gaps remain documented
+
+The Application Scan Use Case, Application UnitTests, active scan shutdown coordination, and user-facing scan interaction remain pending. Logging is connected through the Host; SQLite remains configuration scaffolding without persistence. No AI contract or provider is implemented yet. See `SPRINT.md` and the test project READMEs for current verification limits.
 
 ---
 
@@ -76,6 +80,7 @@ Current Progress
 ```text
 src/
     FileLens.Application
+    FileLens.Bootstrap
     FileLens.Domain
     FileLens.Infrastructure
     FileLens.Shared
@@ -92,6 +97,8 @@ docs/
         Sprint-01.md
 
 tests/
+    FileLens.BootstrapTests
+    FileLens.IntegrationTests
 ```
 
 ---
@@ -114,9 +121,9 @@ This project emphasizes:
 - Project foundation
 - Clean Architecture
 - MVVM
-- Dependency Injection
-- Logging
-- SQLite
+- Dependency Injection scaffolding
+- Logging scaffolding
+- SQLite package and configuration scaffolding
 - Documentation
 
 ## Sprint 1
@@ -127,15 +134,22 @@ This project emphasizes:
 
 ## Sprint 2
 
+- Scanner behavior and policy definition
+- Scanner reliability improvements and IntegrationTests
 - Bootstrap/Host composition root
 - Runtime Dependency Injection registration
-- Scan use case
+- Scan use case and Application UnitTests
+- Full integration verification
 
 ## Sprint 3
 
-- Duplicate detection
-- Large file detection
-- AI recommendation engine
+- Folder Picker and Scan / Cancel interaction
+- Progress / Status and result summary
+- Basic large-file sorting and filtering
+
+Sprint 4 targets duplicate detection; Sprint 5 targets storage visualization and large-scale validation, with performance, virtualization, or streaming work justified by measurements. Sprint 6 targets the first AI recommendation feature with a minimal `IAIProvider` and one provider implementation. Sprint 7 targets SQLite history / persistence, followed by safe file operations, operation history, and undo / recovery in Sprint 8.
+
+Future sprint numbers are provisional and require separate planning and implementation approval. See `ROADMAP.md` for milestones and `SPRINT.md` for the active scope. The SQLite `NU1903` warning is tracked as separate maintenance task MAINT-001 in `TASKS.md`; package updates are not part of this documentation alignment.
 
 ---
 

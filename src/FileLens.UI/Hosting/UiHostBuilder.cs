@@ -1,27 +1,26 @@
-using FileLens.Application.DependencyInjection;
 using FileLens.UI.ViewModels;
 using FileLens.UI.Views;
 
 namespace FileLens.UI.Hosting;
 
 /// <summary>
-/// Prepares generic host registration for the UI layer without composing infrastructure.
+/// Registers UI types without creating a host or composing other layers.
 /// </summary>
 public static class UiHostBuilder
 {
     /// <summary>
-    /// Creates a host builder with UI and application registrations.
+    /// Registers the process application and independently created shell components.
     /// </summary>
-    /// <param name="args">Optional command-line arguments.</param>
-    /// <returns>A configured host builder for later composition-root integration.</returns>
-    public static HostApplicationBuilder Create(string[]? args = null)
+    /// <param name="services">The target service collection.</param>
+    /// <returns>The same service collection for chaining.</returns>
+    public static IServiceCollection AddUiServices(this IServiceCollection services)
     {
-        var builder = Host.CreateApplicationBuilder(args);
+        ArgumentNullException.ThrowIfNull(services);
 
-        builder.Services.AddApplicationServices();
-        builder.Services.AddTransient<MainWindow>();
-        builder.Services.AddTransient<MainWindowViewModel>();
+        services.AddSingleton<App>();
+        services.AddTransient<MainWindow>();
+        services.AddTransient<MainWindowViewModel>();
 
-        return builder;
+        return services;
     }
 }

@@ -1,4 +1,6 @@
 using FileLens.Infrastructure.Configuration;
+using FileLens.Application.Interfaces;
+using FileLens.Infrastructure.Filesystem;
 
 namespace FileLens.Infrastructure.DependencyInjection;
 
@@ -8,7 +10,7 @@ namespace FileLens.Infrastructure.DependencyInjection;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers infrastructure-layer configuration scaffolding.
+    /// Registers the folder scanner and infrastructure configuration scaffolding.
     /// </summary>
     /// <param name="services">The target service collection.</param>
     /// <param name="configureDatabase">Optional database configuration.</param>
@@ -21,6 +23,7 @@ public static class ServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
+        services.AddTransient<IFolderScanner, WindowsFolderScanner>();
         services.AddFileLensSqlite(configureDatabase);
         services.AddFileLensLogging(configureLogging);
 
@@ -85,7 +88,7 @@ public static class ServiceCollectionExtensions
                         rollingInterval: RollingInterval.Day,
                         retainedFileCountLimit: options.RetainedFileCountLimit);
             },
-            preserveStaticLogger: false,
+            preserveStaticLogger: true,
             writeToProviders: false);
 
         return services;

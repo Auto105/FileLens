@@ -25,6 +25,7 @@
 | Version | Date | Author | Notes |
 |----------|------|--------|-------|
 |0.1.0|2026-07-03|Auto|Initial PRD|
+|1.0 (status alignment)|2026-10-01|Codex|Aligned development status after the architecture audit; product goals and release scope unchanged|
 
 ---
 
@@ -385,11 +386,15 @@ Detailed engineering implementation is documented separately:
 
 Current Phase:
 
-> Planning & Architecture
+> Sprint 1 scanning foundation completed; Sprint 2 runtime foundation implemented, with the Application Scan Use Case still pending.
 
 Next Milestone:
 
-Sprint 0 – Project Initialization
+Complete the Sprint 2 Application Scan Use Case, Application UnitTests, and full sprint integration verification.
+
+Scanner policies and reliability implementation, Bootstrap/Host runtime composition, runtime DI, and WPF startup / shutdown integration are implemented. BootstrapTests passed all 7 tests; IntegrationTests ran with 23 passed, 0 failed, and 3 environment-dependent skips. Remaining scanner verification gaps are documented; these results do not establish full scanner reliability or performance.
+
+The Application Scan Use Case, Application UnitTests, active scan shutdown coordination, user-facing scan interaction, SQLite persistence, and AI implementation remain pending. `SPRINT.md` defines the active scope; `ROADMAP.md` maps provisional Sprints 3-8 to the existing release goals. Version 1-3 product scope remains unchanged, and future sprint numbers require separate planning and approval.
 
 ---
 
