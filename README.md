@@ -70,8 +70,9 @@ Current Progress
 - Sprint 2 in progress: scanner policies and reliability implementation completed; Bootstrap/Host, runtime DI, and WPF startup / shutdown connected
 - BootstrapTests implemented: 7 passed, 0 failed, 0 skipped
 - IntegrationTests implemented and run: 23 passed, 0 failed, 3 environment-dependent skips; scanner verification gaps remain documented
+- Application Scan Use Case implemented; UnitTests executed 26 cases with 26 passed, 0 failed, 0 skipped
 
-The Application Scan Use Case, Application UnitTests, active scan shutdown coordination, and user-facing scan interaction remain pending. Logging is connected through the Host; SQLite remains configuration scaffolding without persistence. No AI contract or provider is implemented yet. See `SPRINT.md` and the test project READMEs for current verification limits.
+The Application Use Case forwards scan requests through IFolderScanner; the UI is not connected to scan execution. Full production Application-path integration verification, active scan shutdown coordination, and user-facing scan interaction remain pending. Logging is connected through the Host; SQLite remains configuration scaffolding without persistence. No AI contract or provider is implemented yet. See `SPRINT.md` and the test project READMEs for current verification limits.
 
 ---
 
@@ -99,6 +100,7 @@ docs/
 tests/
     FileLens.BootstrapTests
     FileLens.IntegrationTests
+    FileLens.UnitTests
 ```
 
 ---

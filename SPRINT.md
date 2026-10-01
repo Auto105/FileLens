@@ -150,21 +150,35 @@ explicitly outside this approved implementation. See the BootstrapTests README f
 
 ## 5. Scan Use Case
 
-- [ ] Design the scan use case
-- [ ] Obtain approval for its interface, input validation, and result behavior
-- [ ] Implement the scan use case
-- [ ] Connect the use case to `IFolderScanner`
-- [ ] Validate scan request flow
+- [x] Design the scan use case
+- [x] Obtain approval for its interface, input validation, and result behavior
+- [x] Implement the scan use case
+- [x] Connect the use case to `IFolderScanner`
+- [x] Validate scan request flow
+
+Approved on 2026-10-01 and implemented as transient `IScanFolderUseCase -> ScanFolderUseCase`.
+The sole dependency is IFolderScanner. Cancellation-first pure validation rejects null / empty /
+whitespace input without invoking the scanner. Original paths, tokens, results, and exceptions
+are preserved. Request-flow validation uses the controlled Application fake; real scanning
+through the production Use Case remains a separate full integration check. No UI wiring was added.
 
 ---
 
 ## 6. Application UnitTests
 
-- [ ] Plan the `FileLens.UnitTests` project and obtain approval for its packages / references
-- [ ] Create the test project with a controlled `IFolderScanner` test double
-- [ ] Verify Scan Use Case execution and input validation
-- [ ] Verify cancellation token forwarding and cancellation behavior
-- [ ] Verify result and failure propagation through the Application path without WPF or real filesystem access
+- [x] Plan the `FileLens.UnitTests` project and obtain approval for its packages / references
+- [x] Create the test project with a controlled `IFolderScanner` test double
+- [x] Verify Scan Use Case execution and input validation
+- [x] Verify cancellation token forwarding and cancellation behavior
+- [x] Verify result and failure propagation through the Application path without WPF or real filesystem access
+
+UnitTests target net10.0 and directly reference only Application, reusing existing MSTest packages.
+List-tests reports 19 entries; one exception test expands at execution into 8 data rows, yielding
+26 executed cases: 26 passed, 0 failed, 0 skipped. All required path / token / result / failure /
+cancellation cases passed without filesystem access, Sleep, or a production test seam. Regression:
+IntegrationTests 26 discovered, 23 passed, 0 failed, 3 existing environment skips; BootstrapTests
+7 discovered, 7 passed, 0 failed, 0 skipped. Restore and solution build succeeded with 0 errors
+and 8 occurrences of the existing NU1903 warning across restore / build and four consumers.
 
 ---
 
@@ -184,15 +198,15 @@ explicitly outside this approved implementation. See the BootstrapTests README f
 
 **Next Task**
 
-Design the Application Scan Use Case and obtain separate approval.
+Plan full Sprint 2 integration verification and obtain separate approval.
 
 Target Deliverable:
 
-- A reviewable Scan Use Case contract, input validation, result / failure propagation, and cancellation forwarding.
-- The approved scanner integration path and a complete file list for the next task.
-- Separate approval before implementing the Use Case or Application UnitTests.
+- A reviewable verification plan for production Host composition and actual scanning through the Application Use Case.
+- Explicit acceptance cases, environment-dependent gaps, and lifecycle / cancellation verification boundaries.
+- Separate approval for any additional fixtures or implementation changes needed by that verification.
 
-Bootstrap/Host implementation and its minimal tests are complete. Application Use Case and UnitTests remain separate approval scopes. Active scan shutdown coordination and environment-dependent scanner gaps remain open; do not infer full pipeline validation from Host or scanner test results.
+Bootstrap/Host, Application Scan Use Case, and UnitTests are implemented and tested. UI scan execution is not connected. Full production Application-path integration, active scan shutdown coordination, and environment-dependent scanner gaps remain open; do not infer full pipeline validation from the separate test suites. Sprint 2 remains in progress.
 
 ---
 
@@ -207,22 +221,23 @@ Bootstrap/Host implementation and its minimal tests are complete. Application Us
 - 2026-10-01: Implemented scanner validation, recoverable enumeration / metadata handling, cancellation checks, policy exclusions, and result diagnostics. Solution build succeeded with 0 errors and 2 existing NU1903 warning occurrences; automated scanner behavior tests remain pending.
 - 2026-10-01: Approved and implemented Minimal IntegrationTests, three centrally pinned test packages, and a minimal internal entry checkpoint with friend-assembly access. Restore / solution build succeeded with 0 errors and 4 existing NU1903 warning occurrences. Discovered 26 tests: 23 passed, 0 failed, 3 inconclusive outcomes mapped to skipped; environment-dependent gaps remain documented. No unrelated scanner fixes or MAINT-001 changes were made.
 - 2026-10-01: Approved and implemented FileLens.Bootstrap composition, UI library conversion, transient scanner / shell registration, and WPF / Host lifecycle ownership. Retained default Host lifetime after successful verification. BootstrapTests: 7 passed; scanner regression: 23 passed, 3 skipped, 0 failed. Restore and solution build succeeded with 0 errors and 8 existing NU1903 occurrences across four consumers. Two process-assisted desktop smoke checks with captured-window inspection verified normal startup / close, no process leak, and consistent local application-data logs. No Scan Use Case, active scan shutdown coordination, new package versions, scanner changes, or MAINT-001 work was included.
+- 2026-10-01: Approved and implemented IScanFolderUseCase / ScanFolderUseCase and net10.0 Application-only UnitTests. List-tests reports 19 entries, expanding to 26 executed cases: 26 passed, 0 failed, 0 skipped. IntegrationTests regression: 23 passed, 3 existing environment skips; BootstrapTests regression: 7 passed; all suites had 0 failures. Restore / solution build succeeded with 0 errors and 8 existing NU1903 occurrences. Preserved cancellation-first validation, exact path / token forwarding, original result / exception identity, and Transient DI. No UI, Bootstrap, scanner, existing test, package-version, or active-scan shutdown changes were made; existing RunCodex.bat staged deletion and local untracked file were left untouched.
 
 ---
 
 # Blockers
 
-- The Application Scan Use Case and active scan shutdown coordination remain pending separate approval.
+- Full production Application-path integration verification and active scan shutdown coordination remain pending separate approval.
 - Scanner reliability has initial automated coverage; remaining environment-dependent validation is recorded in the IntegrationTests README.
-- `FileLens.IntegrationTests` exists; `FileLens.UnitTests` remains a placeholder requiring separate package / project approval.
-- Runtime composition is implemented; complete Application-path scanning remains pending the Scan Use Case.
+- All three test projects exist; current suites do not establish complete environment-dependent scanner coverage or full production Application-path integration.
+- Runtime composition and the Application Use Case are implemented; UI scan execution is not connected.
 - The UI project must continue to avoid direct references to Infrastructure in accordance with the project's Clean Architecture rules.
 
 ---
 
 # Notes
 
-Sprint 2 starts from the completed Sprint 1 scanning foundation. Scanner policies, reliability code, and runtime composition are implemented; scanner IntegrationTests and BootstrapTests have run. The Application use case remains pending; available tests do not establish all environment-dependent behavior, active scan shutdown coordination, or large-scale performance.
+Sprint 2 starts from the completed Sprint 1 scanning foundation. Scanner policies, reliability code, runtime composition, and the Application Scan Use Case are implemented; all three test suites have run. Full production Application-path integration remains pending; available tests do not establish all environment-dependent behavior, active scan shutdown coordination, or large-scale performance.
 
 The primary objective is integration rather than new scanning functionality.
 
@@ -243,10 +258,10 @@ Sprint 2 is complete when:
 
 - [x] A dedicated Bootstrap/Host project exists.
 - [x] Dependency Injection is fully configured.
-- [ ] The scan use case is implemented.
+- [x] The scan use case is implemented.
 - [x] Scanner behavior / policies have been separately approved and implemented.
 - [ ] Scanner IntegrationTests verify metadata, summaries, failures, link behavior, and cancellation.
-- [ ] Application UnitTests verify input validation, use case behavior, and cancellation forwarding.
+- [x] Application UnitTests verify input validation, use case behavior, and cancellation forwarding.
 - [ ] The scanning pipeline can be executed and validated through the Application layer.
 - [x] Actual WPF / Host startup and shutdown are connected and verified.
 - [x] The solution builds successfully.

@@ -386,15 +386,15 @@ Detailed engineering implementation is documented separately:
 
 Current Phase:
 
-> Sprint 1 scanning foundation completed; Sprint 2 runtime foundation implemented, with the Application Scan Use Case still pending.
+> Sprint 1 scanning foundation and Sprint 2 runtime foundation / Application Scan Use Case implemented; full sprint integration verification remains pending.
 
 Next Milestone:
 
-Complete the Sprint 2 Application Scan Use Case, Application UnitTests, and full sprint integration verification.
+Complete Sprint 2 full integration verification, including production scanning through the Application path.
 
-Scanner policies and reliability implementation, Bootstrap/Host runtime composition, runtime DI, and WPF startup / shutdown integration are implemented. BootstrapTests passed all 7 tests; IntegrationTests ran with 23 passed, 0 failed, and 3 environment-dependent skips. Remaining scanner verification gaps are documented; these results do not establish full scanner reliability or performance.
+Scanner policies and reliability implementation, Bootstrap/Host runtime composition, runtime DI, WPF startup / shutdown integration, and the Application Scan Use Case / UnitTests are implemented. UnitTests executed 26 cases with all passed; BootstrapTests passed all 7 tests; IntegrationTests ran with 23 passed, 0 failed, and 3 environment-dependent skips. The UI does not invoke the Scan Use Case. Remaining scanner verification gaps are documented; these results do not establish full production Application-path integration, scanner reliability, or performance.
 
-The Application Scan Use Case, Application UnitTests, active scan shutdown coordination, user-facing scan interaction, SQLite persistence, and AI implementation remain pending. `SPRINT.md` defines the active scope; `ROADMAP.md` maps provisional Sprints 3-8 to the existing release goals. Version 1-3 product scope remains unchanged, and future sprint numbers require separate planning and approval.
+Full sprint integration verification, active scan shutdown coordination, user-facing scan interaction, SQLite persistence, and AI implementation remain pending. `SPRINT.md` defines the active scope; `ROADMAP.md` maps provisional Sprints 3-8 to the existing release goals. Version 1-3 product scope remains unchanged, and future sprint numbers require separate planning and approval.
 
 ---
 

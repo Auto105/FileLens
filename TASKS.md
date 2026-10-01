@@ -36,11 +36,11 @@ Folder selection, scan interaction, progress, and result presentation are deferr
 - [x] Improve scanner reliability according to approved policies
 - [x] Add minimal `FileLens.IntegrationTests` and scanner fixtures
 - [x] Implement dedicated Bootstrap/Host composition root and runtime DI
-- [ ] Implement Scan Use Case and input validation
-- [ ] Add `FileLens.UnitTests` for the Application path
+- [x] Implement Scan Use Case and input validation
+- [x] Add `FileLens.UnitTests` for the Application path
 - [ ] Complete full sprint integration verification
 
-Scanner policies and the reliability, IntegrationTests, and Bootstrap/Host implementations were separately approved and completed. BootstrapTests passed all 7 tests; scanner IntegrationTests ran with 23 passed, 0 failed, and 3 environment-dependent skips. WPF startup / shutdown integration passed desktop smoke checks. Scanner verification gaps and active scan shutdown coordination remain open. The Scan Use Case, Application UnitTests, and full sprint integration verification remain incomplete and require their own approved scope. Detailed policy topics, test coverage, and completion criteria are in `SPRINT.md`.
+Scanner policies and the reliability, IntegrationTests, Bootstrap/Host, and Application Scan Use Case / UnitTests implementations were separately approved and completed. UnitTests executed 26 cases with all passed; BootstrapTests passed all 7 tests; scanner IntegrationTests ran with 23 passed, 0 failed, and 3 environment-dependent skips. WPF startup / shutdown integration passed earlier desktop smoke checks. UI scan execution is not connected. Scanner verification gaps, active scan shutdown coordination, and full sprint integration verification remain open and require their own approved scope. Detailed policy topics, test coverage, and completion criteria are in `SPRINT.md`.
 
 ---
 

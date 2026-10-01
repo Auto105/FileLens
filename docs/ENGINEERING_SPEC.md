@@ -135,7 +135,7 @@ FileLens.IntegrationTests
 
 ```
 
-The six `src/` projects, `FileLens.IntegrationTests`, and `FileLens.BootstrapTests` exist. `FileLens.UnitTests` remains a `.gitkeep` placeholder. Bootstrap is the executable composition root; UI is a WPF library. See `ARCHITECTURE.md` for production references and runtime ownership. Scanner IntegrationTests reference Application and Infrastructure without WPF; BootstrapTests reference Bootstrap for production composition checks.
+The six `src/` projects and three test projects exist. `FileLens.UnitTests` targets net10.0 and directly references only Application. Bootstrap is the executable composition root; UI is a WPF library. See `ARCHITECTURE.md` for production references and runtime ownership. Scanner IntegrationTests reference Application and Infrastructure without WPF; BootstrapTests reference Bootstrap for production composition checks.
 
 ---
 
@@ -395,9 +395,9 @@ Current approved packages
 - Serilog.Extensions.Hosting
 - Serilog.Sinks.File
 - Microsoft.Data.Sqlite
-- Microsoft.NET.Test.Sdk 18.10.1 (IntegrationTests and BootstrapTests)
-- MSTest.TestFramework 4.4.1 (IntegrationTests and BootstrapTests)
-- MSTest.TestAdapter 4.4.1 (IntegrationTests and BootstrapTests)
+- Microsoft.NET.Test.Sdk 18.10.1 (IntegrationTests, BootstrapTests, and UnitTests)
+- MSTest.TestFramework 4.4.1 (IntegrationTests, BootstrapTests, and UnitTests)
+- MSTest.TestAdapter 4.4.1 (IntegrationTests, BootstrapTests, and UnitTests)
 
 Rules
 
@@ -973,9 +973,9 @@ Scanning should remain responsive throughout the pipeline.
 
 Sprint 1 implemented `IFolderScanner`, the `FileNode` / `FolderNode` / `ScanResult` DTOs, and `WindowsFolderScanner` traversal, metadata extraction, and in-memory summary calculation. The scanner currently builds the complete tree on a `Task.Run` worker and then calculates totals. These are implementation foundations, not evidence that reliability or the 50,000+ file target has been validated.
 
-Sprint 2 reliability implementation now adds root validation, invocation-time path normalization, recoverable-error handling during actual enumeration and metadata reads, policy exclusions, completion status, and bounded diagnostic details. Minimal scanner IntegrationTests and Bootstrap runtime DI composition exist; the public Application use case remains unimplemented. Build success alone does not validate scanner reliability; environment-dependent gaps are recorded in the IntegrationTests README.
+Sprint 2 reliability implementation now adds root validation, invocation-time path normalization, recoverable-error handling during actual enumeration and metadata reads, policy exclusions, completion status, and bounded diagnostic details. Minimal scanner IntegrationTests, Bootstrap runtime DI composition, and the Application Scan Use Case with UnitTests exist. Actual production scanning through the Use Case remains pending full integration verification. Build success alone does not validate scanner reliability; environment-dependent gaps are recorded in the IntegrationTests README.
 
-Scanner policies, reliability implementation, the initial IntegrationTests scope, and Bootstrap / Host implementation were separately approved on 2026-10-01. The approved scanner behavior is recorded below; the Application Use Case and UnitTests still require their own plans and approvals.
+Scanner policies, reliability implementation, the initial IntegrationTests scope, Bootstrap / Host implementation, and the Application Scan Use Case / UnitTests were separately approved on 2026-10-01. The approved scanner behavior is recorded below; full integration verification and active scan shutdown coordination remain separate tasks.
 
 Retain `IFolderScanner` / `WindowsFolderScanner` and the existing `Task.Run` approach while addressing approved reliability work. The streaming / memory performance goals above remain goals, not current guarantees. Provisional Sprint 5 will measure large-scale behavior and justify any performance, virtualization, or streaming changes.
 
@@ -1152,6 +1152,31 @@ Before completing any feature, verify:
 
 # Testing Strategy
 
+Application Scan Use Case and UnitTests were implemented under separate approval.
+`IScanFolderUseCase.ExecuteAsync(string folderPath, CancellationToken cancellationToken = default)`
+returns the existing ScanResult. Sealed ScanFolderUseCase has only an IFolderScanner dependency
+and is registered as Transient by AddApplicationServices. Cancellation precedes null / empty /
+whitespace validation. The original path and token are forwarded without trimming or normalization.
+Filesystem validation remains the scanner's responsibility. Complete / Partial results and
+exceptions propagate unchanged; the async contract reports validation errors through its Task.
+There is no request DTO, result wrapper, Task.Run, private token source, retry, or timeout.
+The Use Case does not override a scanner result with a post-completion cancellation check.
+
+UnitTests use a small instance fake, controlled task completion, and no Sleep synchronization.
+They verify exact / relative / space-containing paths, token forwarding, result identity,
+input rejection without scanner invocation, cancellation-first behavior, running cancellation,
+unwrapped synchronous / faulted-task errors, constructor validation, and Application-only DI.
+Production UI wiring and actual filesystem scanning through the Use Case are not established
+by these tests. No scanner seam or existing IntegrationTests / BootstrapTests was changed.
+
+Use Case validation on 2026-10-01: UnitTests list-tests reported 19 entries; the exception test
+expanded during execution into 8 data rows, giving 26 executed cases with 26 passed, 0 failed,
+0 skipped. Scanner regression discovered 26 tests: 23 passed, 0 failed, 3 existing environment
+skips (symbolic-link privileges and absent mapped network drive). Bootstrap regression discovered
+7 tests: 7 passed, 0 failed, 0 skipped. Restore / solution build succeeded with 0 errors and
+8 occurrences of the existing NU1903 warning across restore / build and four consumers; UnitTests
+add no SQLite dependency. MAINT-001 remains unchanged. Full sprint integration is not complete.
+
 Bootstrap runtime validation is separate from scanner fixtures. `FileLens.BootstrapTests` uses
 the existing central MSTest versions, validated production Host construction, transient scanner
 and ViewModel resolution, Host Start / Stop, log flush / file-handle release, static logger
@@ -1197,7 +1222,7 @@ Planned after Version 1.0.
 
 Business logic should be testable without requiring UI components.
 
-Sprint 2 introduced `FileLens.IntegrationTests` targeting `net10.0-windows`, referencing Application and Infrastructure, with the three approved test packages pinned through Central Package Management. `FileLens.UnitTests` remains a placeholder for the separately approved future Application task. No mocking, coverage, or helper framework is directly added. Test-only XML documentation generation is disabled; production documentation rules are unchanged.
+Sprint 2 introduced `FileLens.IntegrationTests` targeting `net10.0-windows`, referencing Application and Infrastructure, with the three approved test packages pinned through Central Package Management. `FileLens.UnitTests` reuses those packages, targets net10.0, and directly references only Application; its existing .gitkeep is retained. No mocking, coverage, or helper framework is directly added. Test-only XML documentation generation is disabled; production documentation rules are unchanged.
 
 IntegrationTests use public scanner results / exceptions. A separately approved minimal internal per-instance entry-observed checkpoint synchronizes deletion and running cancellation. The public parameterless constructor leaves it unset; production DI and `IFolderScanner` are unchanged. `Properties/AssemblyInfo.cs` adds only `InternalsVisibleTo("FileLens.IntegrationTests")`; it does not duplicate SDK-generated assembly attributes or disable generation.
 
@@ -1237,7 +1262,7 @@ In Progress
 
 **Prerequisite**
 
-Sprint 1 completed the scanning foundation: folder traversal, file enumeration, file metadata extraction, and in-memory scan summary calculation. Sprint 2 scanner policies, reliability code, and Bootstrap runtime composition are implemented; scanner IntegrationTests and BootstrapTests have run. The Application use case remains pending; environment-dependent scanner gaps require further verification.
+Sprint 1 completed the scanning foundation: folder traversal, file enumeration, file metadata extraction, and in-memory scan summary calculation. Sprint 2 scanner policies, reliability code, Bootstrap runtime composition, and the Application Scan Use Case / UnitTests are implemented. Full production Application-path integration, active scan shutdown coordination, and environment-dependent scanner gaps require further verification. The UI is not connected to scan execution.
 
 **Planned Deliverables**
 

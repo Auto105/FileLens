@@ -35,7 +35,7 @@ The current scanner contract and DTOs belong to Application, with `WindowsFolder
 
 `FileLens.Bootstrap` is the `net10.0-windows` WPF `WinExe`. Its STA entry point owns Host construction and the WPF dispatcher lifecycle. UI is a WPF library, with default ApplicationDefinition disabled: App.xaml is compiled once by the SDK's default Page items and generates no executable entry point. Bootstrap has no direct Domain or Shared reference.
 
-`BootstrapHostBuilder.Create()` composes Application, Infrastructure, and UI registrations. Application registration remains empty until the separately approved Scan Use Case task. Infrastructure registers transient `IFolderScanner -> WindowsFolderScanner`. `UiHostBuilder.AddUiServices()` registers singleton App and transient MainWindow / MainWindowViewModel; it no longer creates a Host or registers other layers.
+`BootstrapHostBuilder.Create()` composes Application, Infrastructure, and UI registrations. Application registers transient `IScanFolderUseCase -> ScanFolderUseCase`. Infrastructure registers transient `IFolderScanner -> WindowsFolderScanner`. `UiHostBuilder.AddUiServices()` registers singleton App and transient MainWindow / MainWindowViewModel; it no longer creates a Host or registers other layers.
 
 Bootstrap resolves App on STA and calls InitializeComponent once. Startup awaits Host.StartAsync before resolving and showing MainWindow. The window receives its ViewModel through constructor injection and sets DataContext. StartupUri is absent. UI receives no IServiceProvider and retains no Infrastructure reference; container resolution is confined to composition and registration factories.
 
@@ -47,7 +47,24 @@ The existing Infrastructure Serilog registration owns file logging through DI. I
 
 `FileLens.BootstrapTests` references Bootstrap and checks production Host composition without constructing WPF Application. A single STA construction check covers compiled MainWindow XAML and injected DataContext. Existing scanner IntegrationTests remain independent of WPF and runtime composition. Actual desktop lifecycle is checked separately; see `../tests/FileLens.BootstrapTests/README.md`.
 
-The Application scan use case and active scan shutdown coordination remain unimplemented and require separate approval. Stopping Host alone does not cancel scanner tasks. See `../SPRINT.md` for remaining integration tasks.
+## Application Scan Execution Path
+
+`IScanFolderUseCase.ExecuteAsync(string folderPath, CancellationToken cancellationToken = default)`
+is implemented by sealed `ScanFolderUseCase`, with `IFolderScanner` as its sole injected dependency.
+It checks cancellation first, then null / empty / whitespace input, and calls the scanner once.
+Paths and tokens are forwarded unchanged. Complete / Partial ScanResult instances and scanner
+exceptions are preserved without mapping, wrapping, retry, timeout, or synthesized results.
+Application performs no filesystem validation; normalization, existence, access, drive type,
+reparse, and protected-directory policies remain in Infrastructure.
+
+`FileLens.UnitTests` targets net10.0 and directly references only Application. An instance fake
+validates Application behavior without filesystem access, WPF, Bootstrap, or a mocking framework.
+The Application registration is already included by the existing Bootstrap builder; no Bootstrap
+or ViewModel changes were needed. The current UI does not invoke the Use Case.
+
+Production scanning through the Use Case remains a full-sprint integration verification item.
+Active scan shutdown coordination remains unimplemented and requires separate approval.
+Stopping Host alone does not cancel scanner tasks. See `../SPRINT.md` for remaining tasks.
 
 ## Deferred Infrastructure
 

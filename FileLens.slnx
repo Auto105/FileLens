@@ -7,4 +7,5 @@
   <Project Path="src/FileLens.UI/FileLens.UI.csproj" />
   <Project Path="tests/FileLens.IntegrationTests/FileLens.IntegrationTests.csproj" />
   <Project Path="tests/FileLens.BootstrapTests/FileLens.BootstrapTests.csproj" />
+  <Project Path="tests/FileLens.UnitTests/FileLens.UnitTests.csproj" />
 </Solution>

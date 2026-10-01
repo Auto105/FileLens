@@ -1,3 +1,6 @@
+using FileLens.Application.Interfaces;
+using FileLens.Application.Services;
+
 namespace FileLens.Application.DependencyInjection;
 
 /// <summary>
@@ -14,6 +17,7 @@ public static class ServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
+        services.AddTransient<IScanFolderUseCase, ScanFolderUseCase>();
         return services;
     }
 }
